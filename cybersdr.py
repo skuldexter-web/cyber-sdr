@@ -23,7 +23,7 @@ BANNER = r"""
   ██║      ╚████╔╝ ██████╔╝█████╗  ██████╔╝    ███████╗██║  ██║██████╔╝
   ██║       ╚██╔╝  ██╔══██╗██╔══╝  ██╔══██╗    ╚════██║██║  ██║██╔══██╗
   ╚██████╗   ██║   ██████╔╝███████╗██║  ██║    ███████║██████╔╝██║  ██║
-   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝    ╚══════╝╚═════╝ ╚═╝  ╚═╝
+   ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝    ╚══════╝╚═════╝ ╚══════╝
 
                      Sdr console by V1RU5 & SK7LD
 """
@@ -47,24 +47,22 @@ SERVERS = [
 
 
 def command_exists(command: str) -> bool:
-    """Return True when a command exists in PATH."""
     return shutil.which(command) is not None
 
 
 def open_browser(url: str) -> None:
-    """Open a URL in a graphical browser."""
     browsers = [
         "chromium",
         "chromium-browser",
         "google-chrome",
-        "google-chrome-stable",
+        "firefox",
     ]
 
     for browser in browsers:
         if command_exists(browser):
             try:
                 subprocess.Popen(
-                    [browser, "--new-window", url],
+                    [browser, url],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                 )
@@ -86,146 +84,102 @@ def open_browser(url: str) -> None:
     webbrowser.open(url)
 
 
-def show_server_menu() -> str | None:
-    """Display the country selection menu using whiptail."""
+def show_whiptail_menu() -> str | None:
     if not command_exists("whiptail"):
-        print("ERROR: whiptail is not installed.")
-        print("Install it with: sudo apt install whiptail")
         return None
 
     menu_items = []
     for index, (country, url) in enumerate(SERVERS, start=1):
-        menu_items.extend([str(index), f"{country:<18} [{url}]"])
+        menu_items.extend([str(index), f"{country:<16} [{url}]"])
 
     try:
+        # TTY expliciet doorgeven voor Kali/Root terminals
+        cmd = [
+            "whiptail",
+            "--title",
+            "CYBER-SDR - Sdr console by V1RU5 & SK7LD",
+            "--menu",
+            "Select an OpenWebRX SDR Country Server:",
+            "20",
+            "70",
+            "12",
+            *menu_items,
+        ]
+        
         result = subprocess.run(
-            [
-                "whiptail",
-                "--title",
-                "CYBER-SDR - Sdr console by V1RU5 & SK7LD",
-                "--menu",
-                "Select an OpenWebRX SDR Country Server:",
-                "22",
-                "75",
-                "14",
-                *menu_items,
-            ],
-            stdout=subprocess.PIPE,
+            cmd,
             stderr=subprocess.PIPE,
-            text=True,
+            stdout=subprocess.PIPE,
+            text=True
         )
-    except OSError as exc:
-        print(f"Unable to start whiptail: {exc}")
-        return None
 
-    if result.returncode != 0:
-        return None
+        if result.returncode == 0 and result.stderr.strip():
+            selection = result.stderr.strip()
+            index = int(selection) - 1
+            return SERVERS[index][1]
+    except Exception:
+        pass
 
-    selection = result.stdout.strip()
-    if not selection:
-        return None
+    return None
+
+
+def show_fallback_menu() -> str | None:
+    print("\033[1;36m============================================================\033[0m")
+    print("\033[1;35m             SELECT OPENWEBRX SDR SERVER                   \033[0m")
+    print("\033[1;36m============================================================\033[0m")
+    
+    for index, (country, url) in enumerate(SERVERS, start=1):
+        print(f"  \033[1;32m[{index:2d}]\033[0m \033[1;37m{country:<16}\033[0m -> \033[0;36m{url}\033[0m")
+    
+    print("  \033[1;31m[ 0]\033[0m Exit")
+    print("\033[1;36m------------------------------------------------------------\033[0m")
 
     try:
-        index = int(selection) - 1
-        return SERVERS[index][1]
-    except (ValueError, IndexError):
-        return None
+        choice = input("\033[1;33mSelect Option [0-14]: \033[0m").strip()
+        if choice == "0" or not choice:
+            return None
+        
+        idx = int(choice) - 1
+        if 0 <= idx < len(SERVERS):
+            return SERVERS[idx][1]
+    except (ValueError, KeyboardInterrupt, EOFError):
+        pass
+
+    return None
 
 
 def create_local_dashboard() -> Path:
-    """Create a local CyberSDR cyberpunk dashboard."""
     dashboard = APP_DIR / "dashboard.html"
-
     html = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CYBER-SDR Console</title>
 <style>
-:root {
-    --bg: #000000;
-    --purple: #bf00ff;
-    --green: #00ff66;
-    --blue: #00f0ff;
-}
-
-* { box-sizing: border-box; }
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: radial-gradient(circle at center, rgba(191,0,255,0.15), transparent 60%), #000000;
-    color: #e8e8e8;
-    font-family: "Courier New", monospace;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.console {
-    width: min(900px, 90vw);
-    border: 1px solid var(--purple);
-    padding: 40px;
-    background: rgba(5,5,12,0.96);
-    box-shadow: 0 0 15px rgba(191,0,255,0.6), 0 0 40px rgba(191,0,255,0.2);
-}
-
-h1 {
-    margin-top: 0;
-    color: var(--green);
-    text-shadow: 0 0 8px var(--green), 0 0 20px rgba(0,255,102,0.5);
-    letter-spacing: 2px;
-}
-
-.subtitle {
-    color: var(--blue);
-    font-weight: bold;
-}
-
-.server {
-    margin-top: 30px;
-    padding: 20px;
-    border-left: 3px solid var(--purple);
-    background: rgba(191,0,255,0.05);
-}
-
-a { color: var(--blue); text-decoration: none; }
-a:hover { color: var(--green); text-shadow: 0 0 10px var(--green); }
-.status { color: var(--green); font-weight: bold; }
-.credits { color: var(--purple); margin-top: 20px; font-size: 0.9em; }
+body { background: #000; color: #00ff66; font-family: monospace; padding: 20px; }
+h1 { color: #bf00ff; }
 </style>
 </head>
-
 <body>
-<div class="console">
 <h1>CYBER-SDR CONSOLE</h1>
-<p class="subtitle">GLOBAL OPENWEBRX SDR ACCESS TERMINAL</p>
-<p class="credits">Sdr console by V1RU5 & SK7LD</p>
-
-<div class="server">
-<p class="status">[ SYSTEM OPERATIONAL ]</p>
-<p>Use the CyberSDR terminal selector to choose an OpenWebRX server by country.</p>
-<p>Cyberpunk Stylesheet loaded at: <br><code>~/.cybersdr/cybersdr.css</code></p>
-</div>
-</div>
+<p>System Operational. Managed by V1RU5 & SK7LD.</p>
 </body>
-</html>
-"""
+</html>"""
     dashboard.write_text(html, encoding="utf-8")
     return dashboard
 
 
 def main() -> int:
-    """Main CyberSDR application entry point."""
     print("\033[0;35m" + BANNER + "\033[0m")
-    
     create_local_dashboard()
 
-    selected_url = show_server_menu()
+    # Probeer whiptail, val anders terug op de Python CLI menu selector
+    selected_url = show_whiptail_menu()
+    if selected_url is None:
+        selected_url = show_fallback_menu()
 
     if selected_url is None:
-        print("\033[0;31mNo server selected. Exiting CYBER-SDR.\033[0m")
+        print("\n\033[0;31m[!] No server selected. Exiting CYBER-SDR.\033[0m\n")
         return 0
 
     print()
@@ -241,3 +195,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
