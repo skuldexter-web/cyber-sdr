@@ -65,7 +65,7 @@ print_banner() {
   ╚██████╗   ██║   ██████╔╝███████╗██║  ██║███████╗██║  ██║
    ╚═════╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝
 
-                     S D R   C O N S O L E
+            SDR  CONSOLE  BY  V1RU5  &  SK7LD
 
 EOF
     printf "${RESET}"
