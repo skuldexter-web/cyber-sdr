@@ -3,19 +3,15 @@
 """
 CyberSDR Console
 SDR console by V1RU5 & SK7LD
-
-Terminal-based OpenWebRX country selector with cyberpunk interface theme.
 """
 
-import os
+import sys
 import shutil
 import subprocess
-import sys
 import webbrowser
 from pathlib import Path
 
 APP_DIR = Path.home() / ".cybersdr"
-CSS_FILE = APP_DIR / "cybersdr.css"
 
 BANNER = r"""
    ██████╗██╗   ██╗██████╗ ███████╗██████╗     ███████╗██████╗ ██████╗ 
@@ -28,21 +24,22 @@ BANNER = r"""
                      Sdr console by V1RU5 & SK7LD
 """
 
+# Country list mapping
 SERVERS = [
-    ("Netherlands", "https://openwebrx.nl/"),
-    ("Germany", "https://openwebrx.de/"),
-    ("Belgium", "https://openwebrx.be/"),
-    ("United States", "https://openwebrx.us/"),
-    ("France", "https://openwebrx.fr/"),
-    ("United Kingdom", "https://www.openwebrx.co.uk/"),
-    ("Switzerland", "https://openwebrx.ch/"),
-    ("Austria", "https://openwebrx.at/"),
-    ("Denmark", "https://openwebrx.dk/"),
-    ("Finland", "https://openwebrx.fi/"),
-    ("Norway", "https://openwebrx.no/"),
-    ("Sweden", "https://openwebrx.se/"),
-    ("Spain", "https://openwebrx.es/"),
-    ("Italy", "https://openwebrx.it/"),
+    ("1", "NL", "Netherlands", "https://openwebrx.nl/"),
+    ("2", "BE", "Belgium", "https://openwebrx.be/"),
+    ("3", "DE", "Germany", "https://openwebrx.de/"),
+    ("4", "FR", "France", "https://openwebrx.fr/"),
+    ("5", "US", "United States", "https://openwebrx.us/"),
+    ("6", "UK", "United Kingdom", "https://www.openwebrx.co.uk/"),
+    ("7", "CH", "Switzerland", "https://openwebrx.ch/"),
+    ("8", "AT", "Austria", "https://openwebrx.at/"),
+    ("9", "DK", "Denmark", "https://openwebrx.dk/"),
+    ("10", "FI", "Finland", "https://openwebrx.fi/"),
+    ("11", "NO", "Norway", "https://openwebrx.no/"),
+    ("12", "SE", "Sweden", "https://openwebrx.se/"),
+    ("13", "ES", "Spain", "https://openwebrx.es/"),
+    ("14", "IT", "Italy", "https://openwebrx.it/"),
 ]
 
 
@@ -51,12 +48,7 @@ def command_exists(command: str) -> bool:
 
 
 def open_browser(url: str) -> None:
-    browsers = [
-        "chromium",
-        "chromium-browser",
-        "google-chrome",
-        "firefox",
-    ]
+    browsers = ["firefox", "chromium", "google-chrome", "chromium-browser"]
 
     for browser in browsers:
         if command_exists(browser):
@@ -84,115 +76,46 @@ def open_browser(url: str) -> None:
     webbrowser.open(url)
 
 
-def show_whiptail_menu() -> str | None:
-    if not command_exists("whiptail"):
-        return None
-
-    menu_items = []
-    for index, (country, url) in enumerate(SERVERS, start=1):
-        menu_items.extend([str(index), f"{country:<16} [{url}]"])
-
-    try:
-        # TTY expliciet doorgeven voor Kali/Root terminals
-        cmd = [
-            "whiptail",
-            "--title",
-            "CYBER-SDR - Sdr console by V1RU5 & SK7LD",
-            "--menu",
-            "Select an OpenWebRX SDR Country Server:",
-            "20",
-            "70",
-            "12",
-            *menu_items,
-        ]
-        
-        result = subprocess.run(
-            cmd,
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            text=True
-        )
-
-        if result.returncode == 0 and result.stderr.strip():
-            selection = result.stderr.strip()
-            index = int(selection) - 1
-            return SERVERS[index][1]
-    except Exception:
-        pass
-
-    return None
-
-
-def show_fallback_menu() -> str | None:
-    print("\033[1;36m============================================================\033[0m")
-    print("\033[1;35m             SELECT OPENWEBRX SDR SERVER                   \033[0m")
-    print("\033[1;36m============================================================\033[0m")
+def main() -> int:
+    print("\033[0;35m" + BANNER + "\033[0m")
     
-    for index, (country, url) in enumerate(SERVERS, start=1):
-        print(f"  \033[1;32m[{index:2d}]\033[0m \033[1;37m{country:<16}\033[0m -> \033[0;36m{url}\033[0m")
-    
+    print("\033[1;36m============================================================\033[0m")
+    print("\033[1;35m             SELECT OPENWEBRX SDR SERVER                    \033[0m")
+    print("\033[1;36m============================================================\033[0m")
+
+    for num, code, country, url in SERVERS:
+        print(f"  \033[1;32m[{num:>2}]\033[0m \033[1;33m{code}\033[0m - \033[1;37m{country:<15}\033[0m \033[0;36m({url})\033[0m")
+
     print("  \033[1;31m[ 0]\033[0m Exit")
     print("\033[1;36m------------------------------------------------------------\033[0m")
 
     try:
-        choice = input("\033[1;33mSelect Option [0-14]: \033[0m").strip()
-        if choice == "0" or not choice:
-            return None
-        
-        idx = int(choice) - 1
-        if 0 <= idx < len(SERVERS):
-            return SERVERS[idx][1]
-    except (ValueError, KeyboardInterrupt, EOFError):
-        pass
-
-    return None
-
-
-def create_local_dashboard() -> Path:
-    dashboard = APP_DIR / "dashboard.html"
-    html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>CYBER-SDR Console</title>
-<style>
-body { background: #000; color: #00ff66; font-family: monospace; padding: 20px; }
-h1 { color: #bf00ff; }
-</style>
-</head>
-<body>
-<h1>CYBER-SDR CONSOLE</h1>
-<p>System Operational. Managed by V1RU5 & SK7LD.</p>
-</body>
-</html>"""
-    dashboard.write_text(html, encoding="utf-8")
-    return dashboard
-
-
-def main() -> int:
-    print("\033[0;35m" + BANNER + "\033[0m")
-    create_local_dashboard()
-
-    # Probeer whiptail, val anders terug op de Python CLI menu selector
-    selected_url = show_whiptail_menu()
-    if selected_url is None:
-        selected_url = show_fallback_menu()
-
-    if selected_url is None:
-        print("\n\033[0;31m[!] No server selected. Exiting CYBER-SDR.\033[0m\n")
+        choice = input("\n\033[1;33mSelect Option [1-14]: \033[0m").strip()
+    except (KeyboardInterrupt, EOFError):
+        print("\n\033[0;31m[!] Aborted.\033[0m")
         return 0
 
-    print()
-    print(f"\033[0;36m[CYBER-SDR]\033[0m Connecting to OpenWebRX server:")
-    print(f"  \033[0;32m{selected_url}\033[0m")
-    print()
+    if choice == "0" or not choice:
+        print("\033[0;31mExiting CYBER-SDR.\033[0m")
+        return 0
 
-    open_browser(selected_url)
+    selected = None
+    for num, code, country, url in SERVERS:
+        if choice == num or choice.upper() == code:
+            selected = (code, url)
+            break
 
-    print("\033[0;32m[ OK ] Browser launch initiated.\033[0m\n")
+    if not selected:
+        print("\033[0;31m[!] Invalid selection.\033[0m")
+        return 1
+
+    code, url = selected
+    print(f"\n\033[0;36m[CYBER-SDR]\033[0m Opening \033[1;33m{code}\033[0m server: \033[0;32m{url}\033[0m")
+
+    open_browser(url)
+    print("\033[0;32m[ OK ] Browser launched successfully.\033[0m\n")
     return 0
 
 
 if __name__ == "__main__":
     sys.exit(main())
-
