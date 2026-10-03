@@ -1,0 +1,108 @@
+/*
+ * CYBER-SDR Console
+ * Sdr console by V1RU5 & SK7LD
+ * Cyberpunk OpenWebRX visual theme
+ *
+ * Palette:
+ *   Background:  #000000
+ *   Purple:      #bf00ff
+ *   Green:       #00ff66
+ *   Blue:        #00f0ff
+ */
+
+:root {
+    --cyber-bg: #000000;
+    --cyber-black: #000000;
+    --cyber-purple: #bf00ff;
+    --cyber-purple-dark: #65008a;
+    --cyber-green: #00ff66;
+    --cyber-blue: #00f0ff;
+    --cyber-text: #e6e6e6;
+}
+
+html, body {
+    background: radial-gradient(circle at top, rgba(191, 0, 255, 0.12), transparent 40%), #000000 !important;
+    color: var(--cyber-text) !important;
+    font-family: 'Courier New', monospace, sans-serif !important;
+}
+
+div, section, article, nav, aside {
+    scrollbar-color: var(--cyber-purple) var(--cyber-black);
+}
+
+.panel, .card, .container, .modal-content, .dropdown-menu {
+    background-color: rgba(5, 5, 12, 0.96) !important;
+    border-color: rgba(191, 0, 255, 0.5) !important;
+    box-shadow: 0 0 10px rgba(191, 0, 255, 0.2) !important;
+}
+
+a {
+    color: var(--cyber-blue) !important;
+}
+
+a:hover {
+    color: var(--cyber-green) !important;
+    text-shadow: 0 0 5px var(--cyber-green), 0 0 15px var(--cyber-green) !important;
+}
+
+button, .btn, input[type="button"], input[type="submit"] {
+    background: #05050a !important;
+    color: var(--cyber-green) !important;
+    border: 1px solid var(--cyber-green) !important;
+    box-shadow: 0 0 5px rgba(0, 255, 102, 0.35), inset 0 0 5px rgba(0, 255, 102, 0.1) !important;
+    transition: all 0.2s ease !important;
+}
+
+button:hover, .btn:hover, input[type="button"]:hover, input[type="submit"]:hover {
+    background: var(--cyber-green) !important;
+    color: #000000 !important;
+    box-shadow: 0 0 10px var(--cyber-green), 0 0 25px rgba(0, 255, 102, 0.5) !important;
+}
+
+input, select, textarea {
+    background: #050509 !important;
+    color: var(--cyber-blue) !important;
+    border: 1px solid var(--cyber-purple) !important;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none !important;
+    border-color: var(--cyber-blue) !important;
+    box-shadow: 0 0 8px var(--cyber-blue), 0 0 18px rgba(0, 240, 255, 0.4) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--cyber-purple) !important;
+    text-shadow: 0 0 8px rgba(191, 0, 255, 0.8), 0 0 18px rgba(191, 0, 255, 0.4) !important;
+}
+
+canvas {
+    border-color: var(--cyber-purple) !important;
+}
+
+.status, .connected, .online {
+    color: var(--cyber-green) !important;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cyber-purple);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--cyber-blue);
+}
+
+::selection {
+    background: var(--cyber-purple);
+    color: #ffffff;
+}
